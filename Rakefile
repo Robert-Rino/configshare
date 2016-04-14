@@ -26,7 +26,6 @@ Rake::TestTask.new(name=:spec) do |t|
   t.pattern = 'specs/*_spec.rb'
 end
 
-
 desc 'Create rbnacl key'
 task :key_generate do
   require 'rbnacl/libsodium'
