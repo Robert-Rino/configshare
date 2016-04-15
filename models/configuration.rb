@@ -31,8 +31,3 @@ class Configuration < Sequel::Model
          options)
   end
 end
-
-# TODO: implement a more complex primary key?
-# def new_id
-#   Base64.strict_encode64(Digest::SHA256.digest(Time.now.to_s))[0..9]
-# end
