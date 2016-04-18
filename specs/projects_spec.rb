@@ -23,6 +23,18 @@ describe 'Testing Project resource routes' do
       _(last_response.status).must_equal 400
       _(last_response.location).must_be_nil
     end
+
+    it 'HAPPY: should encrypt relevant data' do
+      original_url = 'http://example.org/project/proj.git'
+
+      proj = Project.new(name: 'Secret Project')
+      proj.repo_url = original_url
+      proj.save
+      id = proj.id
+
+      _(Project[id].repo_url).must_equal original_url
+      _(Project[id].repo_url_encrypted).wont_equal original_url
+    end
   end
 
   describe 'Finding existing projects' do
