@@ -2,13 +2,14 @@ require 'json'
 require 'sequel'
 
 # Holds a Project's information
-class Project < Sequel::Model
+class Account < Sequel::Model
   include EncryptableModel
 
-  set_allowed_columns :name
-  one_to_many :configurations
-  many_to_one :owner, class: :Account
-  plugin :association_dependencies, :configurations => :delete
+  set_allowed_columns :username
+  one_to_many :projects, key: :owner_id
+
+  plugin :uuid, field: :id
+  plugin :association_dependencies, :projects => :delete
 
   def repo_url
     @repo_url ||= decrypt_field(repo_url_encrypted, :repo_url)
@@ -20,11 +21,10 @@ class Project < Sequel::Model
   end
 
   def to_json(options = {})
-    JSON({  type: 'project',
+    JSON({  type: 'account',
             id: id,
             attributes: {
-              name: name,
-              repo_url: repo_url
+              username: username
             }
           },
          options)
