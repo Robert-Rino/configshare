@@ -6,8 +6,11 @@ Sequel.migration do
       String :id, type: :uuid, primary_key: true
 
       String :username, null: false, unique: true
-      String :password_hashed, text: true
-      String :nonce_64
+      String :password_hash, text: true, null: false
+      String :email, null: false
+      String :salt, null: false
+
+      # TODO: add timestamps
     end
   end
 end
