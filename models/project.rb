@@ -14,6 +14,11 @@ class Project < Sequel::Model
 
   plugin :association_dependencies, configurations: :delete
 
+  def before_destroy
+    DB[:accounts_projects].where(project_id: id).delete
+    super
+  end
+
   def repo_url
     @repo_url ||= decrypt_field(repo_url_encrypted, :repo_url)
   end
