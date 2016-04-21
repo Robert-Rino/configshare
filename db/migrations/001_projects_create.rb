@@ -7,7 +7,6 @@ Sequel.migration do
       foreign_key :owner_id, :accounts
       String :name, unique: true, null: false
       String :repo_url_encrypted, unique: true
-      String :nonce_64
     end
   end
 end
