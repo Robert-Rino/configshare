@@ -9,7 +9,7 @@ proj1.save
 doc11 = proj1.add_configuration(filename: 'config_env.rb')
 doc11.document = "this is the first line\nthis is the second line"
 doc11.description = 'environmental configurations for test, development envs'
-dic11.save
+doc11.save
 doc12 = proj1.add_configuration(filename: 'environments.ini')
 doc12.document = '---'
 doc12.save
