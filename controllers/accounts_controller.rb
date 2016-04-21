@@ -1,3 +1,4 @@
+# Sinatra Application Controllers
 class ShareConfigurationsAPI < Sinatra::Base
   get '/api/v1/accounts/:username' do
     content_type 'application/json'
@@ -65,7 +66,7 @@ class ShareConfigurationsAPI < Sinatra::Base
       all_projects = my_projects + other_projects
       JSON.pretty_generate(data: all_projects)
     rescue => e
-      logger.info "FAILED to get projects for #{username}"
+      logger.info "FAILED to get projects for #{username}: #{e}"
       halt 404
     end
   end
