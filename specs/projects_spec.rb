@@ -29,4 +29,26 @@ describe 'Testing Project resource routes' do
       _(last_response.status).must_equal 404
     end
   end
+
+  describe 'Add a collaborator to a project' do
+    before do
+      @owner = CreateNewAccount.call(
+        username: 'soumya.ray', email: 'sray@nthu.edu.tw', password: 'mypass')
+      @collaborator = CreateNewAccount.call(
+        username: 'lee123', email: 'lee@nthu.edu.tw', password: 'leepassword')
+      @project = @owner.add_owned_project(name: 'Collaborator Needed')
+    end
+
+    it 'HAPPY: should add a collaborative project' do
+      result = post "/api/v1/projects/#{@project.id}/collaborator/#{@collaborator.username}"
+      _(result.status).must_equal 201
+      _(@collaborator.projects.map(&:id)).must_include @project.id
+    end
+
+    it 'BAD: should not be able to add project owner as collaborator' do
+      result = post "/api/v1/projects/#{@project.id}/collaborator/#{@owner.username}"
+      _(result.status).must_equal 403
+      _(@owner.projects.map(&:id)).wont_include @project.id
+    end
+  end
 end
