@@ -1,6 +1,12 @@
-acc1 = Account.new(username: 'soumya.ray', email: 'sray@nthu.edu.tw')
-acc1.password = 'mypassword'
-acc1.save
+# acc1 = Account.new(username: 'soumya.ray', email: 'sray@nthu.edu.tw')
+# acc1.password = 'mypassword'
+# acc1.save
+
+acc1 = CreateNewAccount.call(
+  username: 'soumya.ray', email: 'sray@nthu.edu.tw', password: 'mypassword')
+
+acc2 = CreateNewAccount.call(
+  username: 'lee123', email: 'lee@nthu.edu.tw', password: 'randompassword')
 
 proj11 = AddProjectForOwner.call(
   acc1, name: 'Soumya Project',
@@ -19,9 +25,7 @@ doc21 = proj12.add_configuration(filename: 'credentials.json')
 doc21.document = 'username: password'
 doc21.save
 
-acc2 = Account.new(username: 'lee123', email: 'lee@nthu.edu.tw')
-acc2.password = 'randompassword'
-acc2.save
+
 
 proj21 = acc2.add_owned_project(name: 'Lee\'s Project')
 acc1.add_project(proj21)
