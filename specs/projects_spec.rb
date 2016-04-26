@@ -32,9 +32,9 @@ describe 'Testing Project resource routes' do
 
   describe 'Add a collaborator to a project' do
     before do
-      @owner = CreateNewAccount.call(
+      @owner = CreateAccount.call(
         username: 'soumya.ray', email: 'sray@nthu.edu.tw', password: 'mypass')
-      @collaborator = CreateNewAccount.call(
+      @collaborator = CreateAccount.call(
         username: 'lee123', email: 'lee@nthu.edu.tw', password: 'leepassword')
       @project = @owner.add_owned_project(name: 'Collaborator Needed')
     end

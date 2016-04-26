@@ -4,7 +4,7 @@ class ShareConfigurationsAPI < Sinatra::Base
     begin
       new_project_data = JSON.parse(request.body.read)
       account = Account.where(username: params[:username]).first
-      saved_project = AddProjectForOwner.call(
+      saved_project = CreateProjectForOwner.call(account: 
         account, name: new_project_data['name'],
                  repo_url: new_project_data['repo_url']
       )

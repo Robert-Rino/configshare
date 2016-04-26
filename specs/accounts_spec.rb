@@ -33,7 +33,7 @@ describe 'Testing Account resource routes' do
   describe 'Testing unit level properties of accounts' do
     before do
       @original_password = 'mypassword'
-      @account = CreateNewAccount.call(
+      @account = CreateAccount.call(
         username: 'soumya.ray',
         email: 'sray@nthu.edu.tw',
         password: @original_password)
@@ -53,7 +53,7 @@ describe 'Testing Account resource routes' do
 
   describe 'Finding an existing account' do
     it 'HAPPY: should find an existing account' do
-      new_account = CreateNewAccount.call(
+      new_account = CreateAccount.call(
         username: 'test.name',
         email: 'test@email.com', password: 'mypassword')
       new_projects = (1..3).map do |i|
@@ -78,7 +78,7 @@ describe 'Testing Account resource routes' do
 
   describe 'Creating new owned project for account owner' do
     before do
-      @account = CreateNewAccount.call(
+      @account = CreateAccount.call(
         username: 'soumya.ray',
         email: 'sray@nthu.edu.tw',
         password: 'mypassword')
@@ -106,7 +106,7 @@ describe 'Testing Account resource routes' do
 
     it 'HAPPY: should encrypt relevant data' do
       original_url = 'http://example.org/project/proj.git'
-      proj = AddProjectForOwner.call(@account, name: 'Secret Project',
+      proj = CreateProjectForOwner.call(account: @account, name: 'Secret Project',
                                             repo_url: original_url)
 
       original_desc = 'Secret file with database key'
@@ -127,14 +127,43 @@ describe 'Testing Account resource routes' do
     end
   end
 
+  describe 'Authenticating an account' do
+    before do
+      @account = CreateAccount.call(
+        username: 'soumya.ray',
+        email: 'sray@nthu.edu.tw',
+        password: 'soumya.password')
+    end
+
+    it 'HAPPY: should be able to authenticate a real account' do
+      get '/api/v1/accounts/soumya.ray/authenticate?password=soumya.password'
+      _(last_response.status).must_equal 200
+    end
+
+    it 'SAD: should not authenticate an account with a bad password' do
+      get '/api/v1/accounts/soumya.ray/authenticate?password=guess.password'
+      _(last_response.status).must_equal 401
+    end
+
+    it 'SAD: should not authenticate an account with an invalid username' do
+      get '/api/v1/accounts/randomuser/authenticate?password=soumya.password'
+      _(last_response.status).must_equal 401
+    end
+
+    it 'BAD: should not authenticate an account with password' do
+      get '/api/v1/accounts/soumya.ray/authenticate'
+      _(last_response.status).must_equal 401
+    end
+  end
+
   describe 'Get index of all projects for an account' do
     it 'HAPPY: should find all projects for an account' do
-      my_account = CreateNewAccount.call(
+      my_account = CreateAccount.call(
         username: 'soumya.ray',
         email: 'sray@nthu.edu.tw',
         password: 'mypassword')
 
-      other_account = CreateNewAccount.call(
+      other_account = CreateAccount.call(
         username: 'lee123',
         email: 'lee@nthu.edu.tw',
         password: 'leepassword')
