@@ -128,6 +128,13 @@ describe 'Testing Account resource routes' do
   end
 
   describe 'Authenticating an account' do
+    def login_with(username:, password:)
+      req_header = { 'CONTENT_TYPE' => 'application/json' }
+      req_body = { username: username,
+                   password: password }.to_json
+      post '/api/v1/accounts/authenticate', req_body, req_header
+    end
+
     before do
       @account = CreateAccount.call(
         username: 'soumya.ray',
@@ -136,22 +143,22 @@ describe 'Testing Account resource routes' do
     end
 
     it 'HAPPY: should be able to authenticate a real account' do
-      get '/api/v1/accounts/soumya.ray/authenticate?password=soumya.password'
+      login_with(username: 'soumya.ray', password: 'soumya.password')
       _(last_response.status).must_equal 200
     end
 
-    it 'SAD: should not authenticate an account with a bad password' do
-      get '/api/v1/accounts/soumya.ray/authenticate?password=guess.password'
+    it 'SAD: should not authenticate an account with wrong password' do
+      login_with(username: 'soumya.ray', password: 'guess.password')
       _(last_response.status).must_equal 401
     end
 
     it 'SAD: should not authenticate an account with an invalid username' do
-      get '/api/v1/accounts/randomuser/authenticate?password=soumya.password'
+      login_with(username: 'randomuser', password: 'soumya.password')
       _(last_response.status).must_equal 401
     end
 
-    it 'BAD: should not authenticate an account with password' do
-      get '/api/v1/accounts/soumya.ray/authenticate'
+    it 'BAD: should not authenticate an account without password' do
+      login_with(username: 'soumya.ray', password: '')
       _(last_response.status).must_equal 401
     end
   end
