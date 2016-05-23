@@ -1,20 +1,22 @@
 # Sinatra Application Controllers
 class ShareConfigurationsAPI < Sinatra::Base
-  get '/api/v1/accounts/:username' do
+  get '/api/v1/accounts/:id' do
     content_type 'application/json'
 
-    username = params[:username]
-    account = Account.where(username: username).first
+    id = params[:id]
+    halt 401 unless authorized_account?(env, id)
+    account = Account.where(id: id).first
 
     if account
       projects = account.owned_projects
       JSON.pretty_generate(data: account, relationships: projects)
     else
-      halt 404, "PROJECT NOT FOUND: #{username}"
+      halt 404, "PROJECT NOT FOUND: #{id}"
     end
   end
 
   post '/api/v1/accounts/?' do
+    # TODO: only allow authorized client apps
     begin
       data = JSON.parse(request.body.read)
       new_account = CreateAccount.call(
