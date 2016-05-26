@@ -4,9 +4,9 @@ acc1 = CreateAccount.call(
 acc2 = CreateAccount.call(
   username: 'lee123', email: 'lee@nthu.edu.tw', password: 'randompassword')
 
-proj11 = CreateProjectForOwner.call(account:
-  acc1, name: 'Soumya Project',
-        repo_url: 'http://github.com/soumya/project.git')
+proj11 = CreateProjectForOwner.call(
+  owner_id: acc1.id, name: 'Soumya Project',
+  repo_url: 'http://github.com/soumya/project.git')
 
 doc11 = CreateConfigurationForProject.call(
   project: proj11, filename: 'config_env.rb',
@@ -16,7 +16,7 @@ doc11 = CreateConfigurationForProject.call(
 doc12 = CreateConfigurationForProject.call(
   project: proj11, filename: 'environments.ini', document: '---')
 
-proj12 = CreateProjectForOwner.call(account: acc1, name: 'Config Project')
+proj12 = CreateProjectForOwner.call(owner_id: acc1.id, name: 'Config Project')
 doc21 = CreateConfigurationForProject.call(
   project: proj12, filename: 'credentials.json', document: 'username: password')
 

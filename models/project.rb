@@ -9,13 +9,13 @@ class Project < Sequel::Model
   one_to_many :configurations
   many_to_one :owner, class: :Account
   many_to_many :contributors,
-               class: :Account, join_table: :accounts_projects,
+               class: :Account, join_table: :base_accounts_projects,
                left_key: :project_id, right_key: :contributor_id
 
   plugin :association_dependencies, configurations: :destroy
 
   def before_destroy
-    DB[:accounts_projects].where(project_id: id).delete
+    DB[:base_accounts_projects].where(project_id: id).delete
     super
   end
 
