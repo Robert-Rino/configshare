@@ -1,10 +1,14 @@
-# Sinatra Application Controllers
+# Owned Projects Controllers
 class ShareConfigurationsAPI < Sinatra::Base
-  post '/api/v1/accounts/:id/owned_projects/?' do
+  post '/api/v1/accounts/:owner_id/projects/?' do
+    content_type 'application/json'
+
     begin
+      halt 401 unless authorized_account?(env, params[:owner_id])
+
       new_project_data = JSON.parse(request.body.read)
       saved_project = CreateProjectForOwner.call(
-        owner_id: params[:id],
+        owner_id: params[:owner_id],
         name: new_project_data['name'],
         repo_url: new_project_data['repo_url']
       )
@@ -16,18 +20,20 @@ class ShareConfigurationsAPI < Sinatra::Base
     end
 
     status 201
-    headers('Location' => new_location)
+    { type: 'project', link: new_location, data: saved_project}.to_json
   end
 
-  get '/api/v1/accounts/:owner_id/owned_projects/?' do
-    content_type 'application/json'
-
-    begin
-      owner = Account[params[:owner_id]]
-      JSON.pretty_generate(data: owner.owned_projects)
-    rescue => e
-      logger.info "FAILED to find projects for user #{params[:owner_id]}: #{e}"
-      halt 404
-    end
-  end
+  # get '/api/v1/accounts/:owner_id/owned_projects/?' do
+  #   content_type 'application/json'
+  #
+  #   halt 401 unless authorized_account?(env, params[:owner_id])
+  #
+  #   begin
+  #     owner = Account[params[:owner_id]]
+  #     JSON.pretty_generate(data: owner.owned_projects)
+  #   rescue => e
+  #     logger.info "FAILED to find projects for user #{params[:owner_id]}: #{e}"
+  #     halt 404
+  #   end
+  # end
 end
