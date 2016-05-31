@@ -89,7 +89,6 @@ describe 'Testing Account resource routes' do
   end
 
   describe 'Authenticating an account' do
-    # TODO: only allow authorized client apps (to prevent brute force checks)
     def login_with(username:, password:)
       req_header = { 'CONTENT_TYPE' => 'application/json' }
       req_body = { username: username,

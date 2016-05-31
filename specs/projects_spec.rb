@@ -4,7 +4,7 @@ describe 'Testing Project resource routes' do
   before do
     Configuration.dataset.destroy
     Project.dataset.destroy
-    Account.dataset.destroy
+    BaseAccount.dataset.destroy
   end
 
   describe 'Get index of all projects for an account' do
@@ -89,9 +89,9 @@ describe 'Testing Project resource routes' do
       _(last_response.status).must_equal 200
 
       results = JSON.parse(last_response.body)
-      _(results['data']['id']).must_equal new_project.id
+      _(results['id']).must_equal new_project.id
       3.times do |i|
-        _(results['relationships'][i]['id']).must_equal new_configs[i].id
+        _(results['relationships']['configurations'][i]['id']).must_equal new_configs[i].id
       end
     end
 
@@ -108,16 +108,21 @@ describe 'Testing Project resource routes' do
       @collaborator = CreateAccount.call(
         username: 'lee123', email: 'lee@nthu.edu.tw', password: 'leepassword')
       @project = @owner.add_owned_project(name: 'Collaborator Needed')
+      _, @auth_token = AuthenticateAccount.call(
+        username: 'soumya.ray',
+        password: 'mypass')
+      @req_header = { 'CONTENT_TYPE' => 'application/json',
+                     'HTTP_AUTHORIZATION' => "Bearer #{@auth_token}" }
     end
 
     it 'HAPPY: should add a collaborative project' do
-      result = post "/api/v1/projects/#{@project.id}/collaborator/#{@collaborator.id}"
+      result = post "/api/v1/projects/#{@project.id}/collaborator/#{@collaborator.id}", nil, @req_header
       _(result.status).must_equal 201
       _(@collaborator.projects.map(&:id)).must_include @project.id
     end
 
     it 'BAD: should not be able to add project owner as collaborator' do
-      result = post "/api/v1/projects/#{@project.id}/collaborator/#{@owner.id}"
+      result = post "/api/v1/projects/#{@project.id}/collaborator/#{@owner.id}", nil, @req_header
       _(result.status).must_equal 403
       _(@owner.projects.map(&:id)).wont_include @project.id
     end
@@ -139,7 +144,7 @@ describe 'Testing Project resource routes' do
       req_header = { 'CONTENT_TYPE' => 'application/json',
                      'HTTP_AUTHORIZATION' => "Bearer #{@auth_token}" }
       req_body = { name: 'Demo Project' }.to_json
-      post "/api/v1/accounts/#{@account.id}/owned_projects/",
+      post "/api/v1/accounts/#{@account.id}/projects/",
            req_body, req_header
       _(last_response.status).must_equal 201
       _(last_response.body).wont_be_empty
@@ -150,7 +155,7 @@ describe 'Testing Project resource routes' do
                      'HTTP_AUTHORIZATION' => "Bearer #{@auth_token}" }
       req_body = { name: 'Demo Project' }.to_json
       2.times do
-        post "/api/v1/accounts/#{@account.id}/owned_projects/",
+        post "/api/v1/accounts/#{@account.id}/projects/",
              req_body, req_header
       end
       _(last_response.status).must_equal 400
@@ -160,7 +165,7 @@ describe 'Testing Project resource routes' do
     it 'BAD: should not create projects without authorization' do
       req_header = { 'CONTENT_TYPE' => 'application/json' }
       req_body = { name: 'Demo Project' }.to_json
-      post "/api/v1/accounts/#{@account.id}/owned_projects/",
+      post "/api/v1/accounts/#{@account.id}/projects/",
            req_body, req_header
 
       _(last_response.status).must_equal 401
