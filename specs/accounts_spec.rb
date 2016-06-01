@@ -8,24 +8,35 @@ describe 'Testing Account resource routes' do
   end
 
   describe 'Creating new account' do
+    before do
+      @registration_data = {
+        username: 'test.name',
+        password: 'mypass',
+        email: 'test@email.com' }
+      @req_body = client_signed(@registration_data)
+    end
+
     it 'HAPPY: should create a new unique account' do
       req_header = { 'CONTENT_TYPE' => 'application/json' }
-      req_body = { username: 'test.name',
-                   password: 'mypass',
-                   email: 'test@email.com' }.to_json
-      post '/api/v1/accounts/', req_body, req_header
+      post '/api/v1/accounts/', @req_body, req_header
       _(last_response.status).must_equal 201
       _(last_response.location).must_match(%r{http://})
     end
 
     it 'SAD: should not create accounts with duplicate usernames' do
       req_header = { 'CONTENT_TYPE' => 'application/json' }
-      req_body = { username: 'test.name',
-                   password: 'mypass',
-                   email: 'test@email.com' }.to_json
-      post '/api/v1/accounts/', req_body, req_header
-      post '/api/v1/accounts/', req_body, req_header
+      post '/api/v1/accounts/', @req_body, req_header
+      post '/api/v1/accounts/', @req_body, req_header
       _(last_response.status).must_equal 400
+      _(last_response.location).must_be_nil
+    end
+
+    it 'BAD: should not create account unless requested from authorized app' do
+      req_header = { 'CONTENT_TYPE' => 'application/json' }
+      req_body = @registration.to_json
+      post '/api/v1/accounts/', req_body, req_header
+      post '/api/v1/accounts/', req_body, req_header
+      _(last_response.status).must_equal 401
       _(last_response.location).must_be_nil
     end
   end
@@ -33,7 +44,7 @@ describe 'Testing Account resource routes' do
   describe 'Testing unit level properties of accounts' do
     before do
       @original_password = 'mypassword'
-      @account = CreateAccount.call(
+      @account = create_client_account(
         username: 'soumya.ray',
         email: 'sray@nthu.edu.tw',
         password: @original_password)
@@ -53,15 +64,15 @@ describe 'Testing Account resource routes' do
 
   describe 'Finding an existing account' do
     before do
-      @new_account = CreateAccount.call(
+      @new_account = create_client_account(
         username: 'test.name',
         email: 'test@email.com', password: 'mypassword')
       @new_projects = (1..3).map do |i|
         @new_account.add_owned_project(name: "Project #{i}")
       end
 
-      _, @auth_token =
-        AuthenticateAccount.call(username: 'test.name', password: 'mypassword')
+      @auth_token = authorized_account_token(
+        username: 'test.name', password: 'mypassword')
     end
 
     it 'HAPPY: should find an existing account' do
@@ -89,15 +100,22 @@ describe 'Testing Account resource routes' do
   end
 
   describe 'Authenticating an account' do
-    def login_with(username:, password:)
+    def login_with(username:, password:, client_auth: true)
       req_header = { 'CONTENT_TYPE' => 'application/json' }
-      req_body = { username: username,
-                   password: password }.to_json
+      credentials = { username: username,
+                      password: password }.to_json
+      if client_auth
+        app_secret_key = JOSE::JWK.from_okp([:Ed25519, Base64.decode64(ENV['APP_SECRET_KEY'])])
+        req_body = app_secret_key.sign(credentials).compact
+      else
+        req_body = nil
+      end
+
       post '/api/v1/accounts/authenticate', req_body, req_header
     end
 
     before do
-      @account = CreateAccount.call(
+      @account = create_client_account(
         username: 'soumya.ray',
         email: 'sray@nthu.edu.tw',
         password: 'soumya.password')
@@ -123,6 +141,11 @@ describe 'Testing Account resource routes' do
 
     it 'BAD: should not authenticate an account without password' do
       login_with(username: 'soumya.ray', password: '')
+      _(last_response.status).must_equal 401
+    end
+
+    it 'BAD: should not authenticate valid credentials account without client-app authorization' do
+      login_with(username: 'soumya.ray', password: 'guess.password', client_auth: false)
       _(last_response.status).must_equal 401
     end
   end

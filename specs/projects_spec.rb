@@ -9,12 +9,12 @@ describe 'Testing Project resource routes' do
 
   describe 'Get index of all projects for an account' do
     before do
-      @my_account = CreateAccount.call(
+      @my_account = create_client_account(
         username: 'soumya.ray',
         email: 'sray@nthu.edu.tw',
         password: 'mypassword')
 
-      @other_account = CreateAccount.call(
+      @other_account = create_client_account(
         username: 'lee123',
         email: 'lee@nthu.edu.tw',
         password: 'leepassword')
@@ -33,9 +33,8 @@ describe 'Testing Project resource routes' do
     end
 
     it 'HAPPY: should find all projects for an account' do
-      _, auth_token =
-        AuthenticateAccount.call(username: 'soumya.ray',
-                                 password: 'mypassword')
+      auth_token = authorized_account_token(
+        username: 'soumya.ray', password: 'mypassword')
 
       result = get "/api/v1/accounts/#{@my_account.id}/projects", nil,
                    'HTTP_AUTHORIZATION' => "Bearer #{auth_token}"
@@ -52,12 +51,12 @@ describe 'Testing Project resource routes' do
 
   describe 'Finding existing projects' do
     before do
-      @my_account = CreateAccount.call(
+      @my_account = create_client_account(
         username: 'soumya.ray',
         email: 'sray@nthu.edu.tw',
         password: 'mypassword')
 
-      @other_account = CreateAccount.call(
+      @other_account = create_client_account(
         username: 'lee123',
         email: 'lee@nthu.edu.tw',
         password: 'leepassword')
@@ -81,7 +80,7 @@ describe 'Testing Project resource routes' do
         new_project.add_configuration(filename: "config_file#{i}.rb")
       end
 
-      _, auth_token = AuthenticateAccount.call(
+      auth_token = authorized_account_token(
         username: 'soumya.ray', password: 'mypassword')
 
       get "/api/v1/projects/#{new_project.id}", nil,
@@ -103,14 +102,13 @@ describe 'Testing Project resource routes' do
 
   describe 'Add a collaborator to a project' do
     before do
-      @owner = CreateAccount.call(
+      @owner = create_client_account(
         username: 'soumya.ray', email: 'sray@nthu.edu.tw', password: 'mypass')
-      @collaborator = CreateAccount.call(
+      @collaborator = create_client_account(
         username: 'lee123', email: 'lee@nthu.edu.tw', password: 'leepassword')
       @project = @owner.add_owned_project(name: 'Collaborator Needed')
-      _, @auth_token = AuthenticateAccount.call(
-        username: 'soumya.ray',
-        password: 'mypass')
+      @auth_token = authorized_account_token(
+        username: 'soumya.ray', password: 'mypass')
       @req_header = { 'CONTENT_TYPE' => 'application/json',
                      'HTTP_AUTHORIZATION' => "Bearer #{@auth_token}" }
     end
@@ -130,14 +128,13 @@ describe 'Testing Project resource routes' do
 
   describe 'Creating new owned project for account owner' do
     before do
-      @account = CreateAccount.call(
+      @account = create_client_account(
         username: 'soumya.ray',
         email: 'sray@nthu.edu.tw',
         password: 'mypassword')
 
-      _, @auth_token =
-        AuthenticateAccount.call(username: 'soumya.ray',
-                                 password: 'mypassword')
+      @auth_token = authorized_account_token(
+        username: 'soumya.ray', password: 'mypassword')
     end
 
     it 'HAPPY: should create a new owned project for account' do

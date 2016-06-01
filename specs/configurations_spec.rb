@@ -6,22 +6,18 @@ describe 'Testing Configuration resource routes' do
     Configuration.dataset.destroy
     BaseAccount.dataset.destroy
 
-    @wrong_account = CreateAccount.call(
+    @wrong_account = create_client_account(
       username: 'eve',
       email: 'eve@nthu.edu.tw',
       password: 'password')
-    _, @eve_token =
-      AuthenticateAccount.call(username: 'eve',
-                               password: 'password')
-
-    @account = CreateAccount.call(
+    @eve_token = authorized_account_token(
+      username: 'eve', password: 'password')
+    @account = create_client_account(
       username: 'soumya.ray',
       email: 'sray@nthu.edu.tw',
       password: 'mypassword')
-
-    _, @auth_token =
-      AuthenticateAccount.call(username: 'soumya.ray',
-                               password: 'mypassword')
+    @auth_token = authorized_account_token(
+      username: 'soumya.ray', password: 'mypassword')
     @project = CreateProjectForOwner.call(
       owner_id: @account.id,
       name: 'Demo Project',
@@ -33,7 +29,7 @@ describe 'Testing Configuration resource routes' do
       document: 'test file')
     @req_body = { filename: 'Test Configuration',
                   description: 'config file with variables',
-                  document: "config1 = 'asdf'\nconfig2=asdfjkl"}.to_json
+                  document: "config1 = 'asdf'\nconfig2=asdfjkl" }.to_json
     @req_header = { 'CONTENT_TYPE' => 'application/json',
                     'HTTP_AUTHORIZATION' => "Bearer #{@auth_token}" }
   end
