@@ -110,18 +110,26 @@ describe 'Testing Project resource routes' do
       @auth_token = authorized_account_token(
         username: 'soumya.ray', password: 'mypass')
       @req_header = { 'CONTENT_TYPE' => 'application/json',
-                     'HTTP_AUTHORIZATION' => "Bearer #{@auth_token}" }
+                      'HTTP_AUTHORIZATION' => "Bearer #{@auth_token}" }
     end
 
     it 'HAPPY: should add a collaborative project' do
-      result = post "/api/v1/projects/#{@project.id}/collaborator/#{@collaborator.id}", nil, @req_header
+      result = post "/api/v1/projects/#{@project.id}/collaborators",
+                    { email: @collaborator.email }.to_json, @req_header
       _(result.status).must_equal 201
       _(@collaborator.projects.map(&:id)).must_include @project.id
     end
 
+    it 'SAD: should not be able to add non-existent collaborator' do
+      result = post "/api/v1/projects/#{@project.id}/collaborators",
+                    { email: 'unknown@mail.com' }.to_json, @req_header
+      _(result.status).must_equal 401
+    end
+
     it 'BAD: should not be able to add project owner as collaborator' do
-      result = post "/api/v1/projects/#{@project.id}/collaborator/#{@owner.id}", nil, @req_header
-      _(result.status).must_equal 403
+      result = post "/api/v1/projects/#{@project.id}/collaborators",
+                    { email: @owner.email }.to_json, @req_header
+      _(result.status).must_equal 401
       _(@owner.projects.map(&:id)).wont_include @project.id
     end
   end

@@ -14,18 +14,23 @@ class ShareConfigurationsAPI < Sinatra::Base
     project.to_full_json
   end
 
-  post '/api/v1/projects/:project_id/collaborator/:collaborator_id' do
-    project = authorized_affiliated_project(env, params[:project_id])
-    halt(401, 'Not authorized, or project might not exist') unless project
-
+  post '/api/v1/projects/:project_id/collaborators/?' do
+    content_type 'application/json'
     begin
-      result = AddCollaboratorForProject.call(
-        collaborator_id: params[:collaborator_id],
-        project_id: params[:project_id])
-      status result ? 201 : 403
+      criteria = JSON.parse request.body.read
+      collaborator = FindBaseAccountByEmail.call(criteria['email'])
+      project = authorized_affiliated_project(env, params[:project_id])
+      raise('Unauthorized or not found') unless project && collaborator
+
+      collaborator = AddCollaboratorForProject.call(
+        collaborator_id: collaborator.id,
+        project_id: project.id)
+      collaborator ? status(201) : raise('Could not add collaborator')
     rescue => e
       logger.info "FAILED to add collaborator to project: #{e.inspect}"
-      halt 400
+      halt 401
     end
+
+    collaborator.to_json
   end
 end

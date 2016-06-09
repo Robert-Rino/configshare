@@ -7,7 +7,7 @@ class Project < Sequel::Model
   set_allowed_columns :name
 
   one_to_many :configurations
-  many_to_one :owner, class: :Account
+  many_to_one :owner, class: :BaseAccount
   many_to_many :contributors,
                class: :Account, join_table: :base_accounts_projects,
                left_key: :project_id, right_key: :contributor_id
@@ -51,7 +51,8 @@ class Project < Sequel::Model
               repo_url: repo_url
             },
             relationships: {
-              owner: owner
+              owner: owner,
+              contributors: contributors
             }
           },
          options)

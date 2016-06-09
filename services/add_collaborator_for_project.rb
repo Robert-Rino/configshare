@@ -5,7 +5,7 @@ class AddCollaboratorForProject
     project = Project.first(id: project_id.to_i)
     if project.owner.id != collaborator.id
       collaborator.add_project(project)
-      true
+      collaborator
     else
       false
     end
